@@ -1,4 +1,4 @@
-# Verison: 0.2b.1
+# Version 0.2b.2
 import csv                                                                  # output into csv
 import os                                                                   # for os.walk and pathing
 import re                                                                   # for metadata tag snatching
@@ -28,11 +28,12 @@ time.sleep(.1)
 print('')     
 print('####################################################')
 time.sleep(1)   
-print(' HYDROGRAPHIC  CHART  METADATA  SCRAPER  WRITTEN IN ')
-print(' PYTHON   2.7  SCANS A DIRECTORY FOR ALL .KAP FILES ')
-print(' STRIPS   &  WRITES  ALL  METADATA  TO  A  CSV   AT ')
-print(' THE ROOT OF THE  SCRIPT AND CONVERTS IT TO A DBASE ')
-print(' TABLE - THEN  JOINS IT  TO  A  FIELD  IN  YOUR GDB ')
+print('')
+print(' HYDROGRAPHIC  CHART  TOOL  WRITTEN IN PYTHON   2.7 ')
+print(' A) DECOLLAR NAUTICAL CHARTS IN  A TARGET DIRECTORY ')
+print(' B) UPDATE  TARGET   SDE  WITH  DECOLLARED   CHARTS ')
+print(' C) STRIP  METADATA  FROM .KAPS AND UPDATE THE  SDE ')
+print('')
 print('####################################################')
 time.sleep(.5)
 print('')
@@ -41,17 +42,18 @@ print('')
 
 
 countKAPs = 0                                                               # count of all KAPs, pre processing
-countRecords = 0                                                            # count the records processed                                                           # set a filename var
+countComplete = 0                                                           # count the records processed                                                           # set a filename var
     
 root = Tkinter.Tk()                                                         # tkinter loads with a window/GUI, we need to load it...
 root.withdraw()                                                             # and hide it, withdraw == hide
 
 def whatstheplan():                                                         # XXXXX  PROMPUT USER INPUT  XXXXX
+    
     print('')
     print('Choose your task: ')
-    print('    a) Update Nautical Chart Metadata on the SDE')
-    print('    b) Decollar a Chart Directory (*.KAP)')
-    print('    c) Update SDE Chart Mosaics With New Charts')
+    print('    a) Decollar a Chart Directory (*.KAP)')
+    print('    b) Update SDE Chart Mosaics With New Decollared Charts')
+    print('    c) Update Nautical Chart Metadata on the SDE')
     print('')
     userChoice = raw_input('    (a), (b), or (c): ')
     while userChoice.lower() not in ['a', 'b', 'c']:
@@ -61,21 +63,22 @@ def whatstheplan():                                                         # XX
         time.sleep(.1)
         print('')
         time.sleep(.1)                      
-        print('Party foul, [{}] is not a correct input'.format(userChoice))
+        print('Error: Incorrect entry, [{}] is not a selectable input'.format(userChoice))
         print('')
         print('Choose your task: ')
-        print('    a) Update Nautical Chart Metadata on the SDE')
-        print('    b) Decollar a Chart Directory (*.KAP)')
-        print('    c) Update SDE Chart Mosaics With New Charts')
+        print('    a) Decollar a Chart Directory (*.KAP)')
+        print('    b) Update SDE Chart Mosaics With New Decollared Charts')
+        print('    c) Update Nautical Chart Metadata on the SDE')
         print('')
         userChoice = raw_input('    (a), (b), or (c): ')
     else:
         if userChoice.lower() == 'a':
-            processMetadata()                                               # lets get the metadata!
+            decollarCharts()                                               # lets get the metadata!
         elif userChoice.lower() == 'b':
-            decollarCharts()                                                # lets decollar the charts!
+            updateMosaics()                                                # lets decollar the charts!
         elif userChoice.lower() == 'c':
-            updateMosaics()                                                 # lets update the mosaics!
+            processMetadata()                                                 # lets update the mosaics!
+    
     print('')
     time.sleep(.5)
     print('')
@@ -84,16 +87,19 @@ def whatstheplan():                                                         # XX
     time.sleep(.5) 
     
 def processMetadata():                                                      # XXXXX  GET CHART METADATA  XXXXX
-
-    os.system('cls')
-    print('You have selected [Update Nautical Chart Metadata on the SDE]')
+    
+    print('')
+    time.sleep(.5)
+    print('You have selected [Update Nautical Chart Metadata on the SDE].')
+    time.sleep(.5)
     print('')
     print('Please select target directory containing .KAP files')           # prompt the user
-    time.sleep(2)
-    chartDirectory = tkFileDialog.askdirectory()                            # get the chart directory
-    print('This may take some time, please be patient.')
+    chartDirectory = tkFileDialog.askdirectory()
+    print('')
+    time.sleep(.5)
+    print('Crawling directory, please be patient.')
     time.sleep(1)                                                           # pause
-
+    print('')                                                               # pause
     dictMetadata = {}                                                       # metadata to be written to csv
     rn = datetime.datetime.now().strftime('%y%m%d')                         # get the date time group as 'rn' (right now)   
     
@@ -151,7 +157,6 @@ def processMetadata():                                                      # XX
                     listKAPs.append(os.path.join(root, filename))           # add the found KAP files to the listKAPs list
                     listUniqueKAPS.append(filename)                         # note the unique filenale
     
-    
         getLines(listKAPs)                                                  # get dem lines bro
             
     def getLines(KAPs):                                                     # open the KAP file, get the KAP chart name and first 25 lines and send it to getTags(x,y) 
@@ -206,8 +211,8 @@ def processMetadata():                                                      # XX
             
             writer.writerow(headers)                                        # write the headers
             
-            global countRecords                                             # find our countRecords var
-            countRecords += 1                                               # count 'em!
+            global countComplete                                            # find our countComplete var
+            countComplete += 1                                              # count 'em!
             
             for k, di in dictMetadata.iteritems():                          # for keys (k), and dictionary items (di) in the dictionary dictMetadata
 
@@ -219,13 +224,21 @@ def processMetadata():                                                      # XX
             
     def UpdateGDB():
         print('Converting CSV to dBASE table!  Chimo!')                     # update the user
+        time.sleep(1)                                                       # pause
+        print('')                                                           # pause
         tableName = 'NCM' + str(rn)                                         # give the dBASE table a name
         tableNameFull = str(scratchGDB + '/' + tableName + '.dbf')          # get the full table name and extension
         print('This may take some time, please be patient.')                # update the user
+        time.sleep(1)                                                       # pause
+        print('')                                                           # pause
         print('Converting to dBASE...')                                     # update the user
+        time.sleep(1)                                                       # pause
+        print('')                                                           # pause
         arcpy.TableToTable_conversion(filename, scratchGDB, tableName)      # convert it to a dBASE table :D
 
         print('Adding aliases...')                                          # update the user
+        time.sleep(1)                                                       # pause
+        print('')                                                           # pause
         listFields = [                                                      # list of field names in computer speak and english (field name/alias)
         ['CHART', 'Chart Number'],
         ['CRR', 'Copyright'],           
@@ -258,9 +271,13 @@ def processMetadata():                                                      # XX
                 tableNameFull,                                              # with a dBASE table found here, and
                 r'CHART'                                                    # match on the CHART value in the dBASE table
                 )
+                time.sleep(1)                                               # pause
+                print('')                                                   # pause
                 
             except:
                 print('Schema Issue on: {}'.format(mosaics))                # inform user of schema issue
+                time.sleep(1)                                               # pause
+                print('')                                                   # pause
                 pass
         pass
     
@@ -272,12 +289,12 @@ def processMetadata():                                                      # XX
     os.system('pause')
     print('')
     print('####################################################')
-    print(' Charts Found:     ' + str(countKAPs))
-    print(' Charts Processed: ' + str(countRecords))
+    print(' Charts Found:     ' + str(countKAPs))                           # tell user charts found
+    print(' Charts Processed: ' + str(countComplete))                       # tell user charts processed
 
-    if countKAPs > countRecords:
+    if countKAPs > countComplete:                                           # if there were more charts found than processed alert the user
         print('======================================')
-        print(' Chart Duplicates: ' + str(countKAPs - countRecords))
+        print(' Chart Duplicates: ' + str(countKAPs - countComplete))       # and if there were any duplicates
         
     print('####################################################')
     print('')
@@ -287,34 +304,32 @@ def processMetadata():                                                      # XX
 
 def decollarCharts():                                                       # XXXXX  DECOLLAR      KAPs  XXXXX
     
-    print('')
-    time.sleep(.5)
-    print('Decollaring Chosen...')
-    time.sleep(.5)
-    print('')
-    time.sleep(.5)  
-    print('')
-    time.sleep(.5)
-    print('')
-    time.sleep(.5)
+    print('')   
+    print('You have selected [Decollar a Chart Directory (*.KAP)]')   
+    print('')     
+    print('')   
+    print('')   
     print('')
     print('Please select target directory containing .KAP files')           # prompt the user
-    time.sleep(2)
     chartDirectory = tkFileDialog.askdirectory()                            # get the chart directory
     print('')
-    time.sleep(.5)
+    print('Please select target directory to save decollared .KAP files')
+    time.sleep(2)
+    decollarDirectory = tkFileDialog.askdirectory()
     print('Crawling directory, please be patient.')
-    time.sleep(1)                                                           # pause
+                                                                            # pause
     print('')
-    time.sleep(.5)    
+        
     rn = datetime.datetime.now().strftime('%y%m%d')                         # get the date time group as 'rn' (right now)
 
     arcpy.env.overwriteOutput = True                                        # overwrite old data with arcpy tools
 
     countKAPs = 0                                                           # count of all KAPs, pre processing
-    countRecords = 0                                                        # count the records processed
+    countComplete = 0                                                       # count the records processed
         
     def getKAP(dir):
+    
+        global countKAPs
         listKAPs = []                                                       # a list for *all* the KAP files, duplicates included
         listUniqueKAPS = []                                                 # a list of the unique KAP files to skip when itering all KAPs
         global countKAPs                                                    # mention our global var countKAPs for the user
@@ -343,82 +358,95 @@ def decollarCharts():                                                       # XX
                     errors='ignore'
                     )                                                       
                     if tempString[:3] == 'PLY':                             # unless it's PLY/X
-                        tempCoord.append(tempString.split(',')[1:])
+                        tempCoord.append(tempString[:-2].split(',')[1:])    # add the temp string with edits to the temp list    
                     else:
                         pass
                     
-                listCoords.append(tempCoord)   
+                listCoords.append(tempCoord)                                
                                
         clipKAPs(listCoords)                                                # run the clipKAPs function to begin clipping KAPs (duh!)
 
-    def clipKAPs(coords):
+    def clipKAPs(coords):                                                   # begin the great decollaring
     
-        print(coords)
-
+        print('')   
+        print('Creating feature classes and clipping {} KAP files'.format(len(coords)))       
         print('')
+    
+        for coord in coords:                                                # for coordinates found 
         
-        print('Creating feature classes and clipping.')
-        
-        print('')
-        
-        print('Clipping {} KAP files.'.format(len(coords)))
-        
-        print(len(coords))
-        
-        for coord in coords:
+            basePath, baseName = os.path.split(coord[0])
         
             try:
-                coordinates = [coord[1:]]
-                print(coord[1:])
-                # create polygon
-                fc = arcpy.management.CreateFeatureclass(
-                'in_memory',
-                'POLYGON',
-                spatial_reference=4326
+                        
+                commonPath = os.path.join(
+                str(coord[0]).split(os.path.sep)[-3],
+                str(coord[0]).split(os.path.sep)[-2]
                 )
-                print('1')
-                collar = fc[0]
                 
-                with arcpy.da.InsertCursor(
-                collar,
-                ['SHAPE@']
-                ) as cursor:
-                    cursor.insertRow(coordinates)
-                print('2')
-                extent = arcpy.sa.Raster(coord[0])
-                extent = extent.extent
-                print('3')
-                arcpy.Clip_management(coord[0], extent, 'C:\\clip.tif', collar, '256', 'NONE', 'NO_MAINTAIN_EXTENT')
-                print('Clipped!')
-                # clip KAPs
-            except:
-                print('Encountered an error with {}'.format(coord[1]))
-            
-    
-    getKAP(chartDirectory)
-        
-    # print('')
-    # print('Complete!')
-    # os.system('pause')
-    # print('')
-    # print('####################################################')
-    # print(' Charts Found:     ' + str(countKAPs))
-    # print(' Charts Processed: ' + str(countRecords))
+                rn = datetime.datetime.now().strftime('%y%m%d')                 # get the date time group as 'rn' (right now) 
+                
+                newChartDir = os.path.join(
+                '{}/DECOLLAR-{}/{}'.format(
+                decollarDirectory,
+                rn,                                                             # 'rn' (right now)   
+                commonPath))                                                    # last two folders, reverse recursive
 
-    # if countKAPs > countRecords:
-        # print('======================================')
-        # print(' Chart Duplicates: ' + str(countKAPs - countRecords))
+                try:
+                    os.makedirs(newChartDir)
+                except:
+                    # folder already exists!
+                       
+                listPoints = []
+            
+                for xy in coord[1:]:
+                    xyint = map(float, xy)
+                    x = xyint[1]
+                    y = xyint[0]
+                    listPoints.append(arcpy.Point(x, y))
+            
+                array = arcpy.Array(listPoints)
+                            
+                cSystem = 'Geographic Coordinate Systems/World/WGS 1984'       
+                polygon = arcpy.Polygon(array)
+                collar = arcpy.CreateFeatureclass_management(
+                'in_memory',
+                'tempFC',
+                'POLYGON',
+                '',
+                'DISABLED',
+                'DISABLED',
+                cSystem)
+                
+                cursor = arcpy.da.InsertCursor(collar, ['SHAPE@'])
+                cursor.insertRow([polygon])
+                del cursor
+
+                extentKAP = arcpy.sa.Raster(coord[0])
+                extent = extentKAP.extent
+                
+                outputKAP = '{}/{}.TIF'.format(newChartDir, baseName[:-4])        
+                
+                arcpy.Clip_management(
+                coord[0],
+                str(extent)[:-16],
+                outputKAP,
+                collar,
+                '256',  
+                'ClippingGeometry',
+                'MAINTAIN_EXTENT'
+                )
+                
+                global countComplete
+                countComplete += 1
+                
+            except:
+                print('Error on chart: {}'.format(baseName[:-4]))
         
-    # print('####################################################')
-    # print('')
-    # print('Closing in 10 seconds...')
-    # time.sleep(5)
-    # exit
+    getKAP(chartDirectory)
+    
+    print('Huzzah!  Success: {}/{} KAP charts decollared!'.format(countComplete, countKAPS))
     
 def updateMosaics():                                                        # XXXXX  UPDATE SDE MOSACIS  XXXXX
     pass
     
 whatstheplan()                                                              # start this bad boi!
-
-
-
