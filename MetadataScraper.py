@@ -1,3 +1,4 @@
+# Verison: 0.2b.1
 import csv                                                                  # output into csv
 import os                                                                   # for os.walk and pathing
 import re                                                                   # for metadata tag snatching
